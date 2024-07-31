@@ -3,49 +3,79 @@ import math
 import requests
 import pandas as pd
 import schemas
+import math
 
 app = FastAPI()
+
 baseURL = "https://api.deezer.com/"
 searchURL = "https://api.deezer.com/search"
 
 
-@app.get("/", response_model=schemas.ResponseSchema[schemas.TrackSchema, None])
+def cover_url(md5_hash: str, size: int = 120):
+    return f"https://e-cdns-images.dzcdn.net/images/cover/{md5_hash}/{str(size)}x{str(size)}-000000-80-0-0.jpg"
+
+
+@app.get("/", response_model=schemas.ResponseSchema[schemas.TrackSchema])
 async def search(search_query: str):
     response = requests.get(f"{searchURL}?q={search_query}")
     data = response.json()
     return data
 
 
-@app.get("/album", response_model=schemas.ResponseSchema[schemas.AlbumSchema, None])
+@app.get("/album", response_model=schemas.ResponseSchema[schemas.AlbumSchema])
 async def search_by_album(album_title: str):
     response = requests.get(f"{searchURL}/album?q={album_title}")
     return response.json()
 
 
-@app.get("/album/{album_id}", response_model=schemas.AlbumByIdSchema)
+@app.get(
+    "/album/{album_id}", response_model=schemas.AlbumByIdSchema[schemas.AlbumAnalytics]
+)
 async def album_by_id(album_id: int):
     response = requests.get(f"{baseURL}album/{album_id}")
     data: dict = response.json()
     tracks_data = data["tracks"]["data"]
 
-    tracks_df = pd.json_normalize(tracks_data)
-    album_df = pd.json_normalize(data)
+    tracks_dataframe = pd.json_normalize(tracks_data)
 
-    avg_track_duration = tracks_df["duration"].mean()
-    min_track_duration = tracks_df["duration"].min()
-    max_track_duration = tracks_df["duration"].max()
+    #!!!!!!!!!!!!!!!!!!!!!
+    # album_df = pd.json_normalize(data)
 
-    avg_track_rank = math.ceil(tracks_df["rank"].mean())
-    explicit = tracks_df.loc[tracks_df["explicit_lyrics"]]
+    explicit_lyrics = tracks_dataframe.loc[
+        tracks_dataframe["explicit_lyrics"], ["id", "title", "album.md5_image"]
+    ]
 
-    # toggle hide explicit!!
+    explicit_tracks = []
+    if not explicit_lyrics.empty:
+        grouped_tracks = (
+            explicit_lyrics.groupby("album.md5_image")
+            .apply(lambda x: x[["id", "title"]].to_dict(orient="records"))
+            .to_dict()
+        )
 
-    print(explicit["explicit_lyrics"])
+        for md5_image, tracks in grouped_tracks.items():
+            for track in tracks:
+                track_data = {
+                    "id": track["id"],
+                    "title": track["title"],
+                    "image": cover_url(md5_image, 280),
+                }
 
+                explicit_tracks.append(track_data)
+
+    analytics = {
+        "avg_track_duration": math.ceil(tracks_dataframe["duration"].mean()),
+        "min_track_duration": tracks_dataframe["duration"].min(),
+        "max_track_duration": tracks_dataframe["duration"].max(),
+        "avg_track_rank": math.ceil(tracks_dataframe["rank"].mean()),
+        "explicit_tracks": explicit_tracks,
+    }
+
+    data.update({"analytics": schemas.AlbumAnalytics(**analytics)})
     return data
 
 
-@app.get("/artist", response_model=schemas.ResponseSchema[schemas.ArtistSchema, None])
+@app.get("/artist", response_model=schemas.ResponseSchema[schemas.ArtistSchema])
 async def search_by_artist(artist_name: str):
     response = requests.get(f"{baseURL}/search/artist?q={artist_name}")
     return response.json()
@@ -59,45 +89,89 @@ async def artist_by_id(
     return response.json()
 
 
+def group_dataframe(dataframe: pd.DataFrame, group_by: str):
+    grouped_list = []
+    grouped = dataframe.groupby(group_by).apply(
+        lambda obj: obj.to_dict(orient="records")
+    )
+
+    for item in grouped:
+        grouped_list.append(*item)
+
+    return grouped_list
+
+
 @app.get(
     "/artist/{artist_id}/albums",
-    response_model=schemas.ResponseSchema[
+    response_model=schemas.AnalyticsResponseSchema[
         schemas.AlbumSchema, schemas.ArtistAlbumsAnalytics
     ],
 )
-async def artist_albums(
-    artist_id: int,
-):
-    albums = requests.get(f"{baseURL}/artist/{artist_id}/albums")
-    data = albums.json()
-    df = pd.DataFrame(data.get("data"))
+async def artist_albums(artist_id: int, index: int = 0):
+    api_genres_request = requests.get(f"{baseURL}/genre")
+    api_genres = api_genres_request.json().get("data")
 
-    explicit_tracks = df.loc[df["explicit_lyrics"]]
-    albums = df.loc[df["record_type"] == "album"]
-    singles = df.loc[df["record_type"] == "single"]
-    eps = df.loc[df["record_type"] == "ep"]
+    albums_request = requests.get(f"{baseURL}/artist/{artist_id}/albums?index={index}")
+    data = albums_request.json()
+
+    album_data_dataframe = pd.DataFrame(data.get("data"))
+
+    explicit_content_dataframe = album_data_dataframe.loc[
+        album_data_dataframe["explicit_lyrics"]
+    ]
+    albums_dataframe = album_data_dataframe.loc[
+        album_data_dataframe["record_type"] == "album"
+    ]
+    singles_dataframe = album_data_dataframe.loc[
+        album_data_dataframe["record_type"] == "single"
+    ]
+    eps_dataframe = album_data_dataframe.loc[
+        album_data_dataframe["record_type"] == "ep"
+    ]
+
+    explicit_content = []
+    albums = []
+    singles = []
+    eps = []
+
+    if not explicit_content_dataframe.empty:
+        explicit_content = group_dataframe(explicit_content_dataframe, "id")
+
+    if not albums_dataframe.empty:
+        albums = group_dataframe(albums_dataframe, "id")
+
+    if not singles_dataframe.empty:
+        singles = group_dataframe(singles_dataframe, "id")
+
+    if not eps_dataframe.empty:
+        eps = group_dataframe(eps_dataframe, "id")
 
     genre_ids = list(
-        filter(lambda genre_id: int(genre_id) > 1, df["genre_id"].unique())
+        filter(
+            lambda genre_id: int(genre_id) > 1,
+            album_data_dataframe["genre_id"].unique(),
+        )
     )
 
-    genres = []
-    with requests.Session() as session:
-        for genre_id in genre_ids:
-            response = session.get(f"{baseURL}genre/{genre_id}")
-            response.raise_for_status()
-            genre = response.json()
-            genres.append(genre)
+    genres = list(filter(lambda genre: genre["id"] in genre_ids, api_genres))
+
+    mode_genre_series = album_data_dataframe["genre_id"].mode()
+    popular_genre_id = mode_genre_series.iloc[0]
+
+    most_popular_genre = list(
+        filter(lambda genre: genre["id"] == popular_genre_id, genres)
+    )[0]
 
     analytics = {
-        "explicit_tracks": len(explicit_tracks),
-        "albums": len(albums),
-        "singles": len(singles),
-        "eps": len(eps),
+        "explicit_content": explicit_content,
+        "albums": albums,
+        "singles": singles,
+        "eps": eps,
+        "popular_genre": most_popular_genre,
         "genres": genres,
     }
 
-    data["pandas_data"] = analytics
+    data.update({"analytics": schemas.ArtistAlbumsAnalytics(**analytics)})
     return data
 
 

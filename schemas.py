@@ -3,16 +3,22 @@ from typing import Dict, Generic, List, Optional, TypeVar
 
 
 T = TypeVar("T")
-P = TypeVar("P")
+A = TypeVar("A")
 
 
-class ResponseSchema(BaseModel, Generic[T, P]):
+class ResponseSchema(BaseModel, Generic[T]):
     data: List[T]
     total: int
     prev: Optional[str] = None
     next: Optional[str] = None
 
-    pandas_data: Optional[P] = None
+
+class Analytics(BaseModel, Generic[A]):
+    analytics: A
+
+
+class AnalyticsResponseSchema(ResponseSchema[T], Analytics[A], Generic[T, A]):
+    pass
 
 
 # Track
@@ -69,7 +75,7 @@ class AlbumSchema(TrackAlbumSchema):
 
 
 # Artist
-class ArtistAlbumsSchema(AlbumSchema):
+class ArtistAlbumSchema(AlbumSchema):
     fans: int
     explicit_lyrics: bool
     release_date: str
@@ -87,10 +93,10 @@ class ContributorSchema(TrackArtistSchema):
     role: str
 
 
-class AlbumByIdSchema(ArtistAlbumsSchema):
+class AlbumByIdSchema(ArtistAlbumSchema, Analytics, Generic[A]):
     upc: str
     share: str
-    contributors: Optional[List[ContributorSchema]] = None
+    contributors: Optional[List[ContributorSchema]] = []
     genres: Dict[str, List["GenreSchema"]]
     label: str
     duration: int
@@ -100,16 +106,32 @@ class AlbumByIdSchema(ArtistAlbumsSchema):
     tracks: Dict[str, List[TrackSchema]]
 
 
-# Pandas schemas
+# Analytics schemas
 class GenreSchema(BaseModel):
     id: int
     name: str
     picture: str
 
 
+class ExplicitTrackSchema(BaseModel):
+    id: int
+    title: str
+    image: str
+
+
+class AlbumAnalytics(BaseModel):
+    avg_track_duration: int
+    min_track_duration: int
+    max_track_duration: int
+
+    avg_track_rank: int
+    explicit_tracks: List[ExplicitTrackSchema] = []
+
+
 class ArtistAlbumsAnalytics(BaseModel):
-    explicit_tracks: int
-    albums: int
-    eps: int
-    singles: int
-    genres: List[GenreSchema]
+    explicit_content: List[ArtistAlbumSchema] = []
+    albums: List[ArtistAlbumSchema] = []
+    eps: List[ArtistAlbumSchema] = []
+    singles: List[ArtistAlbumSchema] = []
+    popular_genre: GenreSchema
+    genres: List[GenreSchema] = []
