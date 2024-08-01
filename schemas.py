@@ -35,19 +35,22 @@ class TrackAlbumSchema(BaseModel):
     type: str
 
 
-class TrackArtistSchema(BaseModel):
+class BaseTrackArtistSchema(BaseModel):
     id: int
     name: str
+    tracklist: str
+    type: str
+
+
+class TrackArtistSchema(BaseTrackArtistSchema):
     link: Optional[str] = None
     picture_small: Optional[str] = None
     picture_medium: Optional[str] = None
     picture_big: Optional[str] = None
     picture_xl: Optional[str] = None
-    tracklist: str
-    type: str
 
 
-class TrackSchema(BaseModel):
+class BaseTrackSchema(BaseModel):
     id: int
     readable: bool
     title: str
@@ -61,9 +64,18 @@ class TrackSchema(BaseModel):
     explicit_content_cover: int
     preview: str
     md5_image: str
+    type: str
+
+    # album: TrackAlbumSchema
+
+
+class TrackSchema(BaseTrackSchema):
     artist: TrackArtistSchema
     album: TrackAlbumSchema
-    type: str
+
+
+class TrackSchemaNoArtistPictures(BaseTrackSchema):
+    artist: BaseTrackArtistSchema
 
 
 class AlbumSchema(TrackAlbumSchema):
@@ -103,7 +115,7 @@ class AlbumByIdSchema(ArtistAlbumSchema, Analytics, Generic[A]):
     available: bool
     explicit_content_lyrics: int
     explicit_content_cover: int
-    tracks: Dict[str, List[TrackSchema]]
+    tracks: Dict[str, List[TrackSchemaNoArtistPictures]]
 
 
 # Analytics schemas
@@ -125,7 +137,7 @@ class AlbumAnalytics(BaseModel):
     max_track_duration: int
 
     avg_track_rank: int
-    explicit_tracks: List[ExplicitTrackSchema] = []
+    explicit_tracks: List[TrackSchemaNoArtistPictures] = []
 
 
 class ArtistAlbumsAnalytics(BaseModel):

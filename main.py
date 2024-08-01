@@ -1,9 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import math
 import requests
 import pandas as pd
 import schemas
 import math
+
+from pd_related import group_dataframe, normalize_keys_in_list
 
 app = FastAPI()
 
@@ -38,30 +40,12 @@ async def album_by_id(album_id: int):
 
     tracks_dataframe = pd.json_normalize(tracks_data)
 
-    #!!!!!!!!!!!!!!!!!!!!!
-    # album_df = pd.json_normalize(data)
-
-    explicit_lyrics = tracks_dataframe.loc[
-        tracks_dataframe["explicit_lyrics"], ["id", "title", "album.md5_image"]
-    ]
+    explicit_lyrics = tracks_dataframe.loc[tracks_dataframe["explicit_lyrics"]]
 
     explicit_tracks = []
     if not explicit_lyrics.empty:
-        grouped_tracks = (
-            explicit_lyrics.groupby("album.md5_image")
-            .apply(lambda x: x[["id", "title"]].to_dict(orient="records"))
-            .to_dict()
-        )
-
-        for md5_image, tracks in grouped_tracks.items():
-            for track in tracks:
-                track_data = {
-                    "id": track["id"],
-                    "title": track["title"],
-                    "image": cover_url(md5_image, 280),
-                }
-
-                explicit_tracks.append(track_data)
+        grouped_tracks = group_dataframe(explicit_lyrics, "id")
+        explicit_tracks = normalize_keys_in_list(grouped_tracks)
 
     analytics = {
         "avg_track_duration": math.ceil(tracks_dataframe["duration"].mean()),
@@ -86,19 +70,12 @@ async def artist_by_id(
     artist_id: int,
 ):
     response = requests.get(f"{baseURL}/artist/{artist_id}")
-    return response.json()
+    response_json = response.json()
 
+    if response_json.get("error"):
+        raise HTTPException(404, "invalid artist id")
 
-def group_dataframe(dataframe: pd.DataFrame, group_by: str):
-    grouped_list = []
-    grouped = dataframe.groupby(group_by).apply(
-        lambda obj: obj.to_dict(orient="records")
-    )
-
-    for item in grouped:
-        grouped_list.append(*item)
-
-    return grouped_list
+    return response_json
 
 
 @app.get(
@@ -112,9 +89,13 @@ async def artist_albums(artist_id: int, index: int = 0):
     api_genres = api_genres_request.json().get("data")
 
     albums_request = requests.get(f"{baseURL}/artist/{artist_id}/albums?index={index}")
-    data = albums_request.json()
+    response_json = albums_request.json()
+    data = response_json.get("data")
 
-    album_data_dataframe = pd.DataFrame(data.get("data"))
+    if not data:
+        raise HTTPException(404, "invalid index provided")
+
+    album_data_dataframe = pd.DataFrame(data)
 
     explicit_content_dataframe = album_data_dataframe.loc[
         album_data_dataframe["explicit_lyrics"]
@@ -171,8 +152,8 @@ async def artist_albums(artist_id: int, index: int = 0):
         "genres": genres,
     }
 
-    data.update({"analytics": schemas.ArtistAlbumsAnalytics(**analytics)})
-    return data
+    response_json.update({"analytics": schemas.ArtistAlbumsAnalytics(**analytics)})
+    return response_json
 
 
 @app.get("/api/request")
