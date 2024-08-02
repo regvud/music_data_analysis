@@ -66,8 +66,6 @@ class BaseTrackSchema(BaseModel):
     md5_image: str
     type: str
 
-    # album: TrackAlbumSchema
-
 
 class TrackSchema(BaseTrackSchema):
     artist: TrackArtistSchema
@@ -147,3 +145,13 @@ class ArtistAlbumsAnalytics(BaseModel):
     singles: List[ArtistAlbumSchema] = []
     popular_genre: GenreSchema
     genres: List[GenreSchema] = []
+
+
+class SearchAnalytics(BaseModel):
+    highest_rated: TrackSchema
+    lowest_rated: TrackSchema
+    longest_duration: TrackSchema
+    shortest_duration: TrackSchema
+    title: List[TrackSchema] = []
+    artist_name: List[TrackSchema] = []
+    album_title: List[TrackSchema] = []

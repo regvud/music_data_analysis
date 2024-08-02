@@ -5,23 +5,68 @@ import pandas as pd
 import schemas
 import math
 
-from pd_related import group_dataframe, normalize_keys_in_list
+from pd_related import (
+    dataframe_to_dict,
+    df_column_contains,
+    group_dataframe,
+    normalize_keys_in_list,
+)
+
+from urls import searchURL, baseURL
 
 app = FastAPI()
 
-baseURL = "https://api.deezer.com/"
-searchURL = "https://api.deezer.com/search"
 
-
-def cover_url(md5_hash: str, size: int = 120):
-    return f"https://e-cdns-images.dzcdn.net/images/cover/{md5_hash}/{str(size)}x{str(size)}-000000-80-0-0.jpg"
-
-
-@app.get("/", response_model=schemas.ResponseSchema[schemas.TrackSchema])
+@app.get(
+    "/",
+    response_model=schemas.AnalyticsResponseSchema[
+        schemas.TrackSchema, schemas.SearchAnalytics
+    ],
+)
 async def search(search_query: str):
     response = requests.get(f"{searchURL}?q={search_query}")
-    data = response.json()
-    return data
+    response_json = response.json()
+
+    data = response_json.get("data")
+    normalized_df = pd.json_normalize(data)
+
+    search_df = pd.DataFrame(normalized_df)
+
+    max_rating = search_df["rank"].max()
+    min_rating = search_df["rank"].min()
+
+    max_duration = search_df["duration"].max()
+    min_duration = search_df["duration"].min()
+
+    highest_rated_song = search_df[(search_df["rank"] == max_rating)]
+    lowest_rated_song = search_df[(search_df["rank"] == min_rating)]
+    longest_song = search_df[(search_df["duration"] == max_duration)]
+    shortest_song = search_df[(search_df["duration"] == min_duration)]
+
+    analytics = {
+        "highest_rated": highest_rated_song,
+        "lowest_rated": lowest_rated_song,
+        "longest_duration": longest_song,
+        "shortest_duration": shortest_song,
+    }
+
+    for k, df in analytics.items():
+        analytics[k] = dataframe_to_dict(df)
+
+    keys = ["title", "artist.name", "album.title"]
+    for key in keys:
+        ss_match = df_column_contains(search_df, key, search_query)
+
+        key = key.replace(".", "_")
+        if not ss_match.empty:
+            grouped_data = group_dataframe(ss_match, group_by="id")
+            normalized_list = normalize_keys_in_list(grouped_data)
+            analytics.update({key: normalized_list})
+        else:
+            analytics[key] = []
+
+    response_json.update({"analytics": analytics})
+    return response_json
 
 
 @app.get("/album", response_model=schemas.ResponseSchema[schemas.AlbumSchema])
@@ -154,9 +199,3 @@ async def artist_albums(artist_id: int, index: int = 0):
 
     response_json.update({"analytics": schemas.ArtistAlbumsAnalytics(**analytics)})
     return response_json
-
-
-@app.get("/api/request")
-async def api_request(url: str):
-    response = requests.get(url)
-    return response.json()
