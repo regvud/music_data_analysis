@@ -1,20 +1,36 @@
-from fastapi import FastAPI, HTTPException
 import math
-import requests
-import pandas as pd
-import schemas
-import math
+import os
 
+import pandas as pd
+import requests
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+
+import schemas
 from pd_related import (
     dataframe_to_dict,
     df_column_contains,
     group_dataframe,
     normalize_keys_in_list,
 )
+from urls import baseURL, generate_image_url, searchURL
 
-from urls import searchURL, baseURL
+load_dotenv()
 
 app = FastAPI()
+
+app.add_middleware(
+    SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "skey_sequence")
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get(

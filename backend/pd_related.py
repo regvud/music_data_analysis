@@ -1,5 +1,6 @@
-import pandas as pd
 import json
+
+import pandas as pd
 
 
 def group_dataframe(dataframe: pd.DataFrame | pd.Series, group_by: str):
