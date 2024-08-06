@@ -79,9 +79,9 @@ class TrackSchemaNoArtistPictures(BaseTrackSchema):
 class AlbumSchema(TrackAlbumSchema):
     link: str
     genre_id: int
-    nb_tracks: Optional[int] = None
+    # nb_tracks: Optional[int] = None
     record_type: str
-    artist: Optional[TrackArtistSchema] = None
+    # artist: Optional[TrackArtistSchema] = None
 
 
 # Artist

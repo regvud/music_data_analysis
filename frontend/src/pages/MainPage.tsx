@@ -3,7 +3,9 @@ import { SearchComponent } from "../components/SearchComponent";
 export const MainPage = () => {
   return (
     <>
-      <SearchComponent />
+      <SearchComponent title="Search" navigateTo="/search" />
+      <SearchComponent title="By Artist" navigateTo="/artist" />
+      {/* <SearchComponent title="By artist" /> */}
     </>
   );
 };

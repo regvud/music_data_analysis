@@ -89,7 +89,7 @@ export type BaseTrackType = {
 //     artist: TrackArtistSchema
 //     album: TrackAlbumSchema
 export type TrackType = BaseTrackType & {
-  atrist: TrackArtistType;
+  artist: TrackArtistType;
   album: TrackAlbumType;
 };
 
@@ -109,9 +109,9 @@ export type TrackNoArtistPicturesType = BaseTrackType & {
 export type AlbumType = TrackAlbumType & {
   link: string;
   genre_id: number;
-  nb_tracks: number | null;
+  // nb_tracks: number | null;
   record_type: string;
-  artist: TrackArtistType | null;
+  // artist: TrackArtistType | null;
 };
 
 //
