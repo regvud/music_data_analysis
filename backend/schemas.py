@@ -79,9 +79,7 @@ class TrackSchemaNoArtistPictures(BaseTrackSchema):
 class AlbumSchema(TrackAlbumSchema):
     link: str
     genre_id: int
-    # nb_tracks: Optional[int] = None
     record_type: str
-    # artist: Optional[TrackArtistSchema] = None
 
 
 # Artist
@@ -103,7 +101,7 @@ class ContributorSchema(TrackArtistSchema):
     role: str
 
 
-class AlbumByIdSchema(ArtistAlbumSchema, Analytics, Generic[A]):
+class AlbumByIdSchema(ArtistAlbumSchema):
     upc: str
     share: str
     contributors: Optional[List[ContributorSchema]] = []
@@ -114,6 +112,10 @@ class AlbumByIdSchema(ArtistAlbumSchema, Analytics, Generic[A]):
     explicit_content_lyrics: int
     explicit_content_cover: int
     tracks: Dict[str, List[TrackSchemaNoArtistPictures]]
+
+
+class AlbumByIdAnalyticsSchema(Analytics, Generic[A]):
+    album: AlbumByIdSchema
 
 
 # Analytics schemas

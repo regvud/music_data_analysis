@@ -92,7 +92,8 @@ async def search_by_album(album_title: str):
 
 
 @app.get(
-    "/album/{album_id}", response_model=schemas.AlbumByIdSchema[schemas.AlbumAnalytics]
+    "/album/{album_id}",
+    response_model=schemas.AlbumByIdAnalyticsSchema[schemas.AlbumAnalytics],
 )
 async def album_by_id(album_id: int):
     response = requests.get(f"{baseURL}album/{album_id}")
@@ -102,6 +103,9 @@ async def album_by_id(album_id: int):
     tracks_dataframe = pd.json_normalize(tracks_data)
 
     explicit_lyrics = tracks_dataframe.loc[tracks_dataframe["explicit_lyrics"]]
+    explicit_lyrics["md5_image"] = explicit_lyrics["md5_image"].map(
+        lambda image: generate_image_url(image)
+    )
 
     explicit_tracks = []
     if not explicit_lyrics.empty:
@@ -116,8 +120,12 @@ async def album_by_id(album_id: int):
         "explicit_tracks": explicit_tracks,
     }
 
-    data.update({"analytics": schemas.AlbumAnalytics(**analytics)})
-    return data
+    album_by_id_response = {
+        "album": data,
+        "analytics": schemas.AlbumAnalytics(**analytics),
+    }
+
+    return album_by_id_response
 
 
 @app.get("/artist", response_model=schemas.ResponseSchema[schemas.ArtistSchema])

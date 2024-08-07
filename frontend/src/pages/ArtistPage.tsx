@@ -1,17 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { ArtistAlbumsAnalyticsComponent } from "../components/analytics/ArtistAlbumsAnalyticsComponent";
 import { fetchService } from "../services/fetchApi";
+
+const fetchArtistAlbums = (artistId: string | undefined) => {
+  if (artistId) {
+    return fetchService.artistAlbums(+artistId);
+  }
+  throw new Error("Artist ID is undefined");
+};
 
 export const ArtistPage = () => {
   const { artistId } = useParams();
 
   const { data, error, isPending } = useQuery({
-    queryKey: ["artistAlbums"],
-    queryFn: () => {
-      if (artistId) return fetchService.artistAlbums(+artistId);
-    },
+    queryKey: [artistId],
+    queryFn: () => fetchArtistAlbums(artistId),
     enabled: artistId !== undefined,
   });
 

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { AnalyticsResponseType } from "../types/axiosTypes";
 import {
+  AlbumByIdAnalyticsType,
   AlbumType,
   ArtistAlbumsAnalyticsType,
   SearchAnalyticsType,
@@ -25,4 +26,6 @@ export const fetchService = {
     apiService.get<AnalyticsResponseType<AlbumType, ArtistAlbumsAnalyticsType>>(
       urls.artist.albums(artistId),
     ),
+  albumById: (albumId: number) =>
+    apiService.get<AlbumByIdAnalyticsType>(urls.album.byId(albumId)),
 };

@@ -11,6 +11,6 @@ export const urls = {
     albums: (id: number) => `/artist/${id}/albums`,
   },
   album: {
-    byId: (id: number) => `/albums/${id}`,
+    byId: (id: number) => `/album/${id}`,
   },
 };

@@ -20,7 +20,7 @@ export const router = createBrowserRouter([
         element: <SearchResultsPage />,
       },
       {
-        path: "/album",
+        path: "/album/:albumId",
         element: <AlbumPage />,
       },
       {

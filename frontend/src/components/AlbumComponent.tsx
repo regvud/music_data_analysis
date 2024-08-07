@@ -17,7 +17,7 @@ export const AlbumComponent = ({ album }: AlbumComponentProps) => {
   ): album is ArtistAlbumType {
     return (
       (album as ArtistAlbumType).fans !== undefined &&
-      (album as ArtistAlbumType).release_data !== undefined
+      (album as ArtistAlbumType).release_date !== undefined
     );
   }
 
@@ -29,7 +29,7 @@ export const AlbumComponent = ({ album }: AlbumComponentProps) => {
         )}
         <h1>Title: {album?.title}</h1>
         <h1>Fans: {album?.fans}</h1>
-        <h1>Tracklist: {album?.release_data}</h1>
+        <h1>Released: {album?.release_date}</h1>
         <h1>Tracklist: {album?.tracklist}</h1>
       </div>
     );
