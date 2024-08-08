@@ -5,7 +5,6 @@ export const MainPage = () => {
     <>
       <SearchComponent title="Search" navigateTo="/search" />
       <SearchComponent title="By Artist" navigateTo="/artist" />
-      {/* <SearchComponent title="By artist" /> */}
     </>
   );
 };

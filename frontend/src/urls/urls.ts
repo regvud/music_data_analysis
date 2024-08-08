@@ -1,4 +1,5 @@
 export const baseURL = "http://localhost:8000";
+export const deezerURL = "https://www.deezer.com/";
 
 export const urls = {
   search: {
