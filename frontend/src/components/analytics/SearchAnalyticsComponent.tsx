@@ -1,6 +1,7 @@
 import { TrackMapper } from "../../mappers/TrackMapper";
 import { SearchAnalyticsType } from "../../types/content";
 import { TrackComponent } from "../TrackComponent";
+import { v4 as uuid } from "uuid";
 
 interface SearchAnalyticsComponentProps {
   search_analytics: SearchAnalyticsType;
@@ -33,19 +34,19 @@ export const SearchAnalyticsComponent = ({
       {search_analytics.title.length > 0 && (
         <div>
           <h1 className={headerStyle}>By Title</h1>
-          <TrackMapper tracks={search_analytics?.title} />
+          <TrackMapper tracks={search_analytics?.title} key={uuid()} />
         </div>
       )}
       {search_analytics.album_title.length > 0 && (
         <div>
           <h1 className={headerStyle}>By Album Title</h1>
-          <TrackMapper tracks={search_analytics?.album_title} />
+          <TrackMapper tracks={search_analytics?.album_title} key={uuid()} />
         </div>
       )}
       {search_analytics.artist_name.length > 0 && (
         <div>
           <h1 className={headerStyle}>By Artist Name</h1>
-          <TrackMapper tracks={search_analytics?.artist_name} />
+          <TrackMapper tracks={search_analytics?.artist_name} key={uuid()} />
         </div>
       )}
     </div>

@@ -102,8 +102,12 @@ async def album_by_id(album_id: int):
 
     tracks_dataframe = pd.json_normalize(tracks_data)
 
+    tracks_dataframe["md5_image"] = tracks_dataframe["md5_image"].apply(
+        lambda image: generate_image_url(image)
+    )
+
     explicit_lyrics = tracks_dataframe.loc[tracks_dataframe["explicit_lyrics"]]
-    explicit_lyrics["md5_image"] = explicit_lyrics["md5_image"].map(
+    explicit_lyrics.loc["md5_image"] = explicit_lyrics["md5_image"].apply(
         lambda image: generate_image_url(image)
     )
 
@@ -120,6 +124,10 @@ async def album_by_id(album_id: int):
         "explicit_tracks": explicit_tracks,
     }
 
+    grouped_tracks = group_dataframe(tracks_dataframe, "id")
+    proper_image_tracks = normalize_keys_in_list(grouped_tracks)
+
+    data["tracks"].update({"data": proper_image_tracks})
     album_by_id_response = {
         "album": data,
         "analytics": schemas.AlbumAnalytics(**analytics),

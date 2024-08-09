@@ -17,7 +17,7 @@ export const TrackComponent = ({ track }: TrackComponentProps) => {
         Rank: {Math.ceil(track?.rank / 1000)}
       </p>
       <p className="text-gray-600 mb-4">
-        Link:
+        Link:{" "}
         <a
           href={track?.link}
           className="text-blue-500 hover:underline"

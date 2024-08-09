@@ -5,14 +5,17 @@ import pandas as pd
 
 def group_dataframe(dataframe: pd.DataFrame | pd.Series, group_by: str):
     grouped_list = []
-    grouped = dataframe.groupby(group_by).apply(
-        lambda obj: obj.to_dict(orient="records")
-    )
+    try:
+        grouped = dataframe.groupby(group_by).apply(
+            lambda obj: obj.to_dict(orient="records")
+        )
 
-    for item in grouped:
-        grouped_list.append(*item)
-
-    return grouped_list
+        for item in grouped:
+            grouped_list.append(*item)
+    except TypeError:
+        pass
+    finally:
+        return grouped_list
 
 
 def normalize_keys_in_dict(data: dict):

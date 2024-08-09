@@ -7,10 +7,10 @@ interface TrackMapperProps {
 
 export const TrackMapper = ({ tracks }: TrackMapperProps) => {
   return (
-    <>
+    <div>
       {tracks.map((track) => (
         <TrackComponent track={track} key={track.id} />
       ))}
-    </>
+    </div>
   );
 };

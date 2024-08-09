@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { ArtistAlbumsAnalyticsComponent } from "../components/analytics/ArtistAlbumsAnalyticsComponent";
 import { fetchService } from "../services/fetchApi";
 
@@ -12,6 +12,7 @@ const fetchArtistAlbums = (artistId: string | undefined) => {
 
 export const ArtistPage = () => {
   const { artistId } = useParams();
+  const { state } = useLocation();
 
   const { data, error, isPending } = useQuery({
     queryKey: [artistId],
@@ -25,7 +26,9 @@ export const ArtistPage = () => {
   if (error) return <h1>{error?.message}</h1>;
   return (
     <>
-      <h1>Artist Page</h1>
+      <h1 className="text-3xl font-semibold text-gray-200 dark:text-gray-100 bg-gray-900 shadow-lg p-4">
+        {state?.artistName ? state?.artistName : ""}
+      </h1>
       <ArtistAlbumsAnalyticsComponent analytics={analytics} />
     </>
   );

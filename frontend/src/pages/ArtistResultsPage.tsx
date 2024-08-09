@@ -10,7 +10,9 @@ export const ArtistResultsPage = () => {
 
   return (
     <div>
-      <h1>Artists: </h1>
+      <h1 className="text-3xl font-semibold text-gray-200 dark:text-gray-100 bg-gray-900 shadow-lg p-4">
+        Artists:
+      </h1>
       <ArtistMapper artists={artists} />
     </div>
   );

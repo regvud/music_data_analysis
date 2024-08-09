@@ -7,10 +7,10 @@ interface ArtistMapperProps {
 
 export const ArtistMapper = ({ artists }: ArtistMapperProps) => {
   return (
-    <>
+    <div className="grid grid-cols-3">
       {artists.map((artist) => (
         <ArtistComponent artist={artist} key={artist.id} />
       ))}
-    </>
+    </div>
   );
 };
