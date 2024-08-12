@@ -17,20 +17,6 @@ export const SearchAnalyticsComponent = ({
 }: SearchAnalyticsComponentProps) => {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className={headerStyle}>Rating</h1>
-        <p className={paragraphStyle}>Highest:</p>
-        <TrackComponent track={search_analytics?.highest_rated} />
-        <p className={paragraphStyle}>Lowest: </p>
-        <TrackComponent track={search_analytics?.lowest_rated} />
-      </div>
-      <div>
-        <h1 className={headerStyle}>Duration</h1>
-        <p className={paragraphStyle}>Longest: </p>
-        <TrackComponent track={search_analytics?.longest_duration} />
-        <p className={paragraphStyle}>Shortest: </p>
-        <TrackComponent track={search_analytics?.shortest_duration} />
-      </div>
       {search_analytics.title.length > 0 && (
         <div>
           <h1 className={headerStyle}>By Title</h1>
@@ -49,6 +35,20 @@ export const SearchAnalyticsComponent = ({
           <TrackMapper tracks={search_analytics?.artist_name} key={uuid()} />
         </div>
       )}
+      <div>
+        <h1 className={headerStyle}>Rating</h1>
+        <p className={paragraphStyle}>Highest:</p>
+        <TrackComponent track={search_analytics?.highest_rated} />
+        <p className={paragraphStyle}>Lowest: </p>
+        <TrackComponent track={search_analytics?.lowest_rated} />
+      </div>
+      <div>
+        <h1 className={headerStyle}>Duration</h1>
+        <p className={paragraphStyle}>Longest: </p>
+        <TrackComponent track={search_analytics?.longest_duration} />
+        <p className={paragraphStyle}>Shortest: </p>
+        <TrackComponent track={search_analytics?.shortest_duration} />
+      </div>
     </div>
   );
 };

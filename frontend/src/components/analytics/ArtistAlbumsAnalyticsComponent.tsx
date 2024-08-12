@@ -16,8 +16,6 @@ export const ArtistAlbumsAnalyticsComponent = ({
   const [showEps, setShowEps] = useState<boolean>(false);
   const [showExplicit, setShowExplicit] = useState<boolean>(false);
 
-  // TODO: visualize poping values
-
   return (
     <>
       <div className="p-4">
@@ -48,7 +46,7 @@ export const ArtistAlbumsAnalyticsComponent = ({
         >
           Singles: {analytics?.singles.length}
         </h1>
-        {showSingles && <AlbumMapper albums={analytics?.singles} />}
+        {showSingles && <AlbumMapper albums={analytics?.singles} flex={true} />}
       </div>
 
       <div className="p-4">
@@ -64,12 +62,17 @@ export const ArtistAlbumsAnalyticsComponent = ({
       </div>
 
       <div className="p-4">
-        <h1 className="text-2xl font-bold mb-2">Popular genre:</h1>
+        <h1
+          className="text-2xl text-gray-700
+          font-bold mb-2"
+        >
+          Popular genre:
+        </h1>
         <GenreComponent genre={analytics?.popular_genre} />
       </div>
 
       <div className="p-4">
-        <h1 className="text-2xl font-bold mb-2">Genres:</h1>
+        <h1 className="text-2xl text-gray-700 font-bold mb-2">Genres:</h1>
         <div className="flex flex-wrap gap-2">
           <GenreMapper genres={analytics?.genres} flex={true} />
         </div>

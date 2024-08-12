@@ -39,11 +39,15 @@ app.add_middleware(
         schemas.TrackSchema, schemas.SearchAnalytics
     ],
 )
-async def search(search_query: str):
+def search(search_query: str):
     response = requests.get(f"{searchURL}?q={search_query}")
     response_json = response.json()
 
     data = response_json.get("data")
+
+    if not data:
+        raise HTTPException(404, detail="Ivalid search input")
+
     normalized_df = pd.json_normalize(data)
 
     search_df = pd.DataFrame(normalized_df)
@@ -54,10 +58,10 @@ async def search(search_query: str):
     max_duration = search_df["duration"].max()
     min_duration = search_df["duration"].min()
 
-    highest_rated_song = search_df[(search_df["rank"] == max_rating)]
-    lowest_rated_song = search_df[(search_df["rank"] == min_rating)]
-    longest_song = search_df[(search_df["duration"] == max_duration)]
-    shortest_song = search_df[(search_df["duration"] == min_duration)]
+    highest_rated_song = search_df[(search_df["rank"] == max_rating)].iloc[0]
+    lowest_rated_song = search_df[(search_df["rank"] == min_rating)].iloc[0]
+    longest_song = search_df[(search_df["duration"] == max_duration)].iloc[0]
+    shortest_song = search_df[(search_df["duration"] == min_duration)].iloc[0]
 
     analytics = {
         "highest_rated": highest_rated_song,
@@ -86,7 +90,7 @@ async def search(search_query: str):
 
 
 @app.get("/album", response_model=schemas.ResponseSchema[schemas.AlbumSchema])
-async def search_by_album(album_title: str):
+def search_by_album(album_title: str):
     response = requests.get(f"{searchURL}/album?q={album_title}")
     return response.json()
 
@@ -95,7 +99,7 @@ async def search_by_album(album_title: str):
     "/album/{album_id}",
     response_model=schemas.AlbumByIdAnalyticsSchema[schemas.AlbumAnalytics],
 )
-async def album_by_id(album_id: int):
+def album_by_id(album_id: int):
     response = requests.get(f"{baseURL}album/{album_id}")
     data: dict = response.json()
     tracks_data = data["tracks"]["data"]
@@ -137,13 +141,13 @@ async def album_by_id(album_id: int):
 
 
 @app.get("/artist", response_model=schemas.ResponseSchema[schemas.ArtistSchema])
-async def search_by_artist(artist_name: str):
+def search_by_artist(artist_name: str):
     response = requests.get(f"{baseURL}/search/artist?q={artist_name}")
     return response.json()
 
 
 @app.get("/artist/{artist_id}", response_model=schemas.ArtistSchema)
-async def artist_by_id(
+def artist_by_id(
     artist_id: int,
 ):
     response = requests.get(f"{baseURL}/artist/{artist_id}")
@@ -161,7 +165,7 @@ async def artist_by_id(
         schemas.AlbumSchema, schemas.ArtistAlbumsAnalytics
     ],
 )
-async def artist_albums(artist_id: int, index: int = 0):
+def artist_albums(artist_id: int, index: int = 0):
     api_genres_request = requests.get(f"{baseURL}/genre")
     api_genres = api_genres_request.json().get("data")
 
@@ -170,7 +174,7 @@ async def artist_albums(artist_id: int, index: int = 0):
     data = response_json.get("data")
 
     if not data:
-        raise HTTPException(404, "invalid index provided")
+        raise HTTPException(404, "Invalid artist index")
 
     album_data_dataframe = pd.DataFrame(data)
 
@@ -216,9 +220,13 @@ async def artist_albums(artist_id: int, index: int = 0):
     mode_genre_series = album_data_dataframe["genre_id"].mode()
     popular_genre_id = mode_genre_series.iloc[0]
 
-    most_popular_genre = list(
-        filter(lambda genre: genre["id"] == popular_genre_id, genres)
-    )[0]
+    most_popular_genre = None
+    if popular_genre_id > 1:
+        most_popular_genre = list(
+            filter(lambda genre: genre["id"] == popular_genre_id, genres)
+        )[0]
+    else:
+        most_popular_genre = genres[0]
 
     analytics = {
         "explicit_content": explicit_content,

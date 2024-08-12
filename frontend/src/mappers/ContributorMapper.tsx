@@ -9,7 +9,7 @@ export const ContributorMapper = ({ contributors }: ContributorMapperProps) => {
   const navigate = useNavigate();
 
   function goToArtist(artistId: number, artistName: string) {
-    navigate(`/artist/${artistId}`, { state: artistName });
+    navigate(`/artist/${artistId}`, { state: { artistName: artistName } });
   }
 
   return (
@@ -21,7 +21,7 @@ export const ContributorMapper = ({ contributors }: ContributorMapperProps) => {
         >
           <img
             onClick={() => goToArtist(contributor.id, contributor.name)}
-            src={contributor?.picture_small}
+            src={contributor?.picture_big}
             alt="contributorImage"
             className="w-20 h-20 rounded-full mb-4 object-cover"
           />

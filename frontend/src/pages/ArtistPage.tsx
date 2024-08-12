@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import { useLocation, useParams } from "react-router-dom";
 import { ArtistAlbumsAnalyticsComponent } from "../components/analytics/ArtistAlbumsAnalyticsComponent";
+import { Loader } from "../components/Loader";
 import { fetchService } from "../services/fetchApi";
 
 const fetchArtistAlbums = (artistId: string | undefined) => {
@@ -18,12 +20,23 @@ export const ArtistPage = () => {
     queryKey: [artistId],
     queryFn: () => fetchArtistAlbums(artistId),
     enabled: artistId !== undefined,
+    retry: false,
   });
 
   const analytics = data?.data?.analytics;
 
-  if (isPending) return <h1>Loading..</h1>;
-  if (error) return <h1>{error?.message}</h1>;
+  if (isPending) {
+    return <Loader />;
+  }
+
+  if (axios.isAxiosError(error)) {
+    return (
+      <div className="text-xl mt-2 text-center text-red-600">
+        <p>{error.response?.data?.detail}</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <h1 className="text-3xl font-semibold text-gray-200 dark:text-gray-100 bg-gray-900 shadow-lg p-4">

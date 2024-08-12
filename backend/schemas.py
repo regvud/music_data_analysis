@@ -1,6 +1,7 @@
 from typing import Dict, Generic, List, Optional, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+import math
 
 T = TypeVar("T")
 A = TypeVar("A")
@@ -55,7 +56,7 @@ class BaseTrackSchema(BaseModel):
     readable: bool
     title: str
     title_short: str
-    title_version: Optional[str] = ""
+    title_version: str = ""
     link: str
     duration: int
     rank: int
@@ -65,6 +66,14 @@ class BaseTrackSchema(BaseModel):
     preview: str
     md5_image: str
     type: str
+
+    @field_validator("*", mode="before")
+    def split_str(cls, v):
+        if isinstance(v, float):
+            if math.isnan(v):
+                return ""
+            return v
+        return v
 
 
 class TrackSchema(BaseTrackSchema):

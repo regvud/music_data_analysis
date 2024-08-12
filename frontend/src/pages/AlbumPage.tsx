@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { AlbumByIdAnalyticsComponent } from "../components/analytics/AlbumByIdAnalyticsComponent";
+import { Loader } from "../components/Loader";
 import { fetchService } from "../services/fetchApi";
 
 const fetchAlbum = (albumId: string | undefined) => {
@@ -19,7 +20,10 @@ export const AlbumPage = () => {
     enabled: albumId !== undefined,
   });
 
-  if (isPending) return <h1>Loading..</h1>;
+  if (isPending) {
+    return <Loader />;
+  }
+
   if (error) return <h1>{error?.message}</h1>;
   return (
     <div>

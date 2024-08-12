@@ -22,10 +22,9 @@ export const AlbumByIdAnalyticsComponent = ({
   const maxTrackDuration = (analytics.max_track_duration / 60).toFixed(2);
   const minTrackDuration = (analytics.min_track_duration / 60).toFixed(2);
 
-  const albumDuration = (album.duration / 60).toFixed(2);
+  const albumDuration = (album.duration / 60).toFixed();
   const avgRank = (analytics?.avg_track_rank / 1000).toFixed();
 
-  // TODO: visualize poping values
   return (
     <>
       <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg flex flex-col justify-center items-center">
@@ -106,7 +105,7 @@ export const AlbumByIdAnalyticsComponent = ({
       <div className="max-w-4xl mx-auto p-6 mt-6 bg-white rounded-lg shadow-lg">
         <h1 className="text-2xl font-bold text-indigo-600 mb-4">Analytics</h1>
         <h1 className="text-lg font-semibold text-gray-600">
-          Average Rank: {avgRank}
+          Average Track Rank: {avgRank}
         </h1>
         <div className="mt-4">
           <h1 className="text-lg font-semibold text-gray-600">

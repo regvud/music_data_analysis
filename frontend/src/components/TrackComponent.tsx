@@ -8,7 +8,7 @@ interface TrackComponentProps {
 
 export const TrackComponent = ({ track }: TrackComponentProps) => {
   return (
-    <div className="border border-gray-300 rounded-lg shadow-lg p-6 max-w-[60%] mx-auto bg-white">
+    <div className="border border-gray-300 rounded-lg shadow-lg p-6 m-5 max-w-[60%] mx-auto bg-white">
       <h1 className="text-2xl font-bold text-green-500 mb-2">{track?.title}</h1>
       <p className="text-gray-600 mb-1">
         Duration: {Math.ceil(track?.duration / 60)} minutes

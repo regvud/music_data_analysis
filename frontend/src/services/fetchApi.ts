@@ -1,9 +1,10 @@
 import axios from "axios";
-import { AnalyticsResponseType } from "../types/axiosTypes";
+import { AnalyticsResponseType, ResponseType } from "../types/axiosTypes";
 import {
   AlbumByIdAnalyticsType,
   AlbumType,
   ArtistAlbumsAnalyticsType,
+  ArtistType,
   SearchAnalyticsType,
   TrackType,
 } from "../types/content";
@@ -20,7 +21,9 @@ export const fetchService = {
     album: (album_title: string) =>
       apiService.get(urls.search.album(album_title)),
     artist: (artist_name: string) =>
-      apiService.get(urls.search.artist(artist_name)),
+      apiService.get<ResponseType<ArtistType[]>>(
+        urls.search.artist(artist_name),
+      ),
   },
   artistAlbums: (artistId: number) =>
     apiService.get<AnalyticsResponseType<AlbumType, ArtistAlbumsAnalyticsType>>(

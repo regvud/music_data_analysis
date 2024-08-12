@@ -1,7 +1,8 @@
-import { AxiosError } from "axios";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchService } from "../services/fetchApi";
+import { AnalyticsResponseType, ResponseType } from "../types/axiosTypes";
+import { ArtistType, SearchAnalyticsType, TrackType } from "../types/content";
 
 interface SearchComponentProps {
   title: string;
@@ -15,9 +16,13 @@ export const SearchComponent = ({
   const inputRef = useRef("");
   const navigate = useNavigate();
 
-  const [searchData, setSearchData] = useState<any>();
+  const [searchData, setSearchData] = useState<
+    | ResponseType<ArtistType[]>
+    | AnalyticsResponseType<TrackType, SearchAnalyticsType>
+    | undefined
+  >(undefined);
 
-  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [showErrorMsg, setShowErrorMsg] = useState<boolean>(false);
 
   function searchForInput() {
     switch (navigateTo) {
@@ -25,25 +30,25 @@ export const SearchComponent = ({
         fetchService.search
           .base(inputRef.current)
           .then(({ data }) => setSearchData(data))
-          .catch((error: AxiosError) => setErrorMsg(error.message));
+          .catch(setShowErrorMsg);
         break;
       case "/artist":
         fetchService.search
           .artist(inputRef.current)
-          .then(({ data }) => setSearchData(data))
-          .catch((error: AxiosError) => setErrorMsg(error.message));
-        break;
-      case "/albums":
-        fetchService.search
-          .album(inputRef.current)
-          .then(({ data }) => setSearchData(data))
-          .catch((error: AxiosError) => setErrorMsg(error.message));
+          .then(({ data }) => {
+            if (data.data?.length > 0) {
+              setSearchData(data);
+            } else {
+              setShowErrorMsg(true);
+            }
+          })
+          .catch(setShowErrorMsg);
         break;
     }
   }
 
   useEffect(() => {
-    if (searchData) {
+    if (searchData && searchData?.data?.length > 0) {
       navigate(`${navigateTo}`, { state: searchData });
     }
   }, [searchData, navigate, navigateTo]);
@@ -64,8 +69,10 @@ export const SearchComponent = ({
           {title}
         </button>
       </div>
-      {errorMsg && (
-        <h1 className="text-red-500 text-lg font-semibold">{errorMsg}</h1>
+      {showErrorMsg && (
+        <h1 className="text-red-500 text-lg font-semibold">
+          Invalid search input
+        </h1>
       )}
     </div>
   );

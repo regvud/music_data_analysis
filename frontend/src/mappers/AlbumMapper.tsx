@@ -8,7 +8,7 @@ interface AlbumMapperProps {
 
 export const AlbumMapper = ({ albums, flex }: AlbumMapperProps) => {
   return (
-    <div className={`flex ${flex ? "flex-row overflow-auto" : ""}`}>
+    <div className={`${flex ? "flex flex-row overflow-auto" : ""}`}>
       {albums?.map((album) => <AlbumComponent album={album} key={album.id} />)}
     </div>
   );
